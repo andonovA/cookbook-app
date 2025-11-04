@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import Link from 'next/link'
@@ -12,6 +12,19 @@ export default function LoginPage() {
   const [message, setMessage] = useState('')
   const router = useRouter()
   const supabase = createClient()
+
+  // Check for error message from OAuth callback in URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const error = params.get('error')
+      if (error) {
+        setMessage(decodeURIComponent(error))
+        // Clean up URL
+        window.history.replaceState({}, '', '/auth/login')
+      }
+    }
+  }, [])
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,6 +59,7 @@ export default function LoginPage() {
       })
 
       if (error) throw error
+      // OAuth redirect will happen automatically, don't set loading to false
     } catch (error: any) {
       setMessage(error.message || 'An error occurred')
       setLoading(false)
@@ -59,7 +73,11 @@ export default function LoginPage() {
         <p className="text-gray-600 mb-8">Sign in to your account</p>
 
         {message && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+          <div className={`mb-4 p-3 rounded-lg text-sm ${
+            message.includes('Check your email') 
+              ? 'bg-green-50 border border-green-200 text-green-700'
+              : 'bg-red-50 border border-red-200 text-red-700'
+          }`}>
             {message}
           </div>
         )}
