@@ -21,20 +21,19 @@ export default async function UserProfilePage({ params }: { params: { id: string
   // Fetch user's recipes
   const { data: recipes, error: recipesError } = await supabase
     .from('recipes')
-    .select(`
-      *,
-      user_profiles (
-        username,
-        full_name,
-        avatar_url
-      )
-    `)
+    .select('*')
     .eq('user_id', params.id)
     .order('created_at', { ascending: false })
 
   if (recipesError) {
     console.error('Error fetching recipes:', recipesError)
   }
+
+  // Add profile to each recipe for compatibility
+  const recipesWithProfiles = recipes?.map((recipe: any) => ({
+    ...recipe,
+    user_profiles: profile
+  })) || []
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -66,7 +65,7 @@ export default async function UserProfilePage({ params }: { params: { id: string
               <p className="text-gray-700 mb-4">{profile.bio}</p>
             )}
             <div className="flex items-center gap-4 text-sm text-gray-600">
-              <span className="font-medium">{recipes?.length || 0} Recipes</span>
+              <span className="font-medium">{recipesWithProfiles?.length || 0} Recipes</span>
               <span>Joined {new Date(profile.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</span>
             </div>
           </div>
@@ -79,13 +78,13 @@ export default async function UserProfilePage({ params }: { params: { id: string
           {profile.full_name || profile.username}'s Recipes
         </h2>
         
-        {!recipes || recipes.length === 0 ? (
+        {!recipesWithProfiles || recipesWithProfiles.length === 0 ? (
           <div className="text-center py-12 card">
             <p className="text-gray-500 text-lg mb-4">No recipes yet.</p>
           </div>
         ) : (
           <div className="space-y-6">
-            {recipes.map((recipe: any) => (
+            {recipesWithProfiles.map((recipe: any) => (
               <RecipeCard key={recipe.id} recipe={recipe} />
             ))}
           </div>

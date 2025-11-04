@@ -98,27 +98,33 @@ export default function NewRecipePage() {
         ? data.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag.length > 0)
         : null
 
+      // Build recipe object with only basic fields first
+      const recipeData: any = {
+        user_id: user.id,
+        title: data.title,
+        description: data.description || null,
+        ingredients: data.ingredients,
+        instructions: data.instructions,
+        photo_url: photoUrl,
+        video_url: videoUrl,
+      }
+
+      // Add optional fields if they exist (columns might not exist in DB yet)
+      if (data.category) recipeData.category = data.category
+      if (tags) recipeData.tags = tags
+      if (data.prep_time) recipeData.prep_time = parseInt(data.prep_time)
+      if (data.cook_time) recipeData.cook_time = parseInt(data.cook_time)
+      if (data.servings) recipeData.servings = parseInt(data.servings)
+      if (data.difficulty) recipeData.difficulty = data.difficulty
+
       // Insert recipe into database
       const { error } = await supabase
         .from('recipes')
-        .insert({
-          user_id: user.id,
-          title: data.title,
-          description: data.description || null,
-          ingredients: data.ingredients,
-          instructions: data.instructions,
-          photo_url: photoUrl,
-          video_url: videoUrl,
-          category: data.category || null,
-          tags: tags,
-          prep_time: data.prep_time ? parseInt(data.prep_time) : null,
-          cook_time: data.cook_time ? parseInt(data.cook_time) : null,
-          servings: data.servings ? parseInt(data.servings) : null,
-          difficulty: data.difficulty || null,
-        })
+        .insert(recipeData)
 
       if (error) throw error
 
+      // Redirect and let the page refresh naturally
       router.push('/')
     } catch (error) {
       console.error('Error creating recipe:', error)

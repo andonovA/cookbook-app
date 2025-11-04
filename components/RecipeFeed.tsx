@@ -38,26 +38,87 @@ export default function RecipeFeed() {
 
   useEffect(() => {
     fetchRecipes()
+    
+    // Refresh recipes when page becomes visible or focused (e.g., after creating a recipe)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchRecipes()
+      }
+    }
+    
+    const handleFocus = () => {
+      fetchRecipes()
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
   }, [])
 
   const fetchRecipes = async () => {
     try {
-      const { data, error } = await supabase
+      setLoading(true)
+      
+      // Try to fetch with user_profiles first
+      let query = supabase
         .from('recipes')
-        .select(`
-          *,
-          user_profiles (
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
 
-      if (error) throw error
-      setRecipes(data || [])
-    } catch (error) {
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Error fetching recipes:', error)
+        throw error
+      }
+
+      console.log('Fetched recipes:', data?.length || 0)
+
+      // Try to get user profiles if they exist
+      if (data && data.length > 0) {
+        const userIds = [...new Set(data.map((r: any) => r.user_id))]
+        
+        // Try to fetch user profiles (might fail if table doesn't exist)
+        let profiles: any[] | null = null
+        try {
+          const profileResult = await supabase
+            .from('user_profiles')
+            .select('id, username, full_name, avatar_url')
+            .in('id', userIds)
+          
+          if (!profileResult.error) {
+            profiles = profileResult.data
+          }
+        } catch (err) {
+          // user_profiles table might not exist yet - that's okay
+          console.log('user_profiles table not available')
+        }
+
+        // Map profiles to recipes
+        const profileMap = new Map()
+        if (profiles) {
+          profiles.forEach((profile: any) => {
+            profileMap.set(profile.id, profile)
+          })
+        }
+
+        const recipesWithProfiles = data.map((recipe: any) => ({
+          ...recipe,
+          user_profiles: profileMap.get(recipe.user_id) || null
+        }))
+
+        setRecipes(recipesWithProfiles)
+      } else {
+        setRecipes([])
+      }
+    } catch (error: any) {
       console.error('Error fetching recipes:', error)
+      // Don't show alert, just log - recipes might not exist yet
+      setRecipes([])
     } finally {
       setLoading(false)
     }
