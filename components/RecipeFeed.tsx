@@ -82,25 +82,26 @@ export default function RecipeFeed() {
       if (data && data.length > 0) {
         const userIds = Array.from(new Set(data.map((r: any) => r.user_id)))
         
-        // Try to fetch user profiles (might fail if table doesn't exist)
+        // Try to fetch user profiles (might fail if table doesn't exist or relationship not defined)
         let profiles: any[] | null = null
-        try {
-          const profileResult = await supabase
-            .from('user_profiles')
-            .select('id, username, full_name, avatar_url')
-            .in('id', userIds)
-          
-          if (!profileResult.error) {
-            profiles = profileResult.data
-          }
-        } catch (err) {
-          // user_profiles table might not exist yet - that's okay
-          console.log('user_profiles table not available')
+        
+        // Check if user_profiles table exists by trying to query it
+        // This will fail gracefully if table doesn't exist or relationship isn't defined
+        const profileResult = await supabase
+          .from('user_profiles')
+          .select('id, username, full_name, avatar_url')
+          .in('id', userIds)
+        
+        // Only use profiles if query succeeded and no error
+        // Ignore errors about missing relationships - table might not exist yet
+        if (!profileResult.error && profileResult.data) {
+          profiles = profileResult.data
         }
+        // Silently ignore errors - user_profiles table might not exist or migration not run yet
 
         // Map profiles to recipes
         const profileMap = new Map()
-        if (profiles) {
+        if (profiles && profiles.length > 0) {
           profiles.forEach((profile: any) => {
             profileMap.set(profile.id, profile)
           })

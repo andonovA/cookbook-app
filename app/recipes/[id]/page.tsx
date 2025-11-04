@@ -16,21 +16,21 @@ export default async function RecipePage({ params }: { params: { id: string } })
     notFound()
   }
 
-  // Fetch user profile separately
+  // Fetch user profile separately (if table exists)
+  // This will fail gracefully if table doesn't exist or relationship isn't defined
   let userProfile = null
-  try {
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('username, full_name, avatar_url')
-      .eq('id', recipe.user_id)
-      .single()
-    
-    if (profile) {
-      userProfile = profile
-    }
-  } catch (err) {
-    // user_profiles table might not exist - that's okay
+  const profileResult = await supabase
+    .from('user_profiles')
+    .select('username, full_name, avatar_url')
+    .eq('id', recipe.user_id)
+    .single()
+  
+  // Only use profile if query succeeded and no error
+  // Ignore errors about missing relationships - table might not exist yet
+  if (!profileResult.error && profileResult.data) {
+    userProfile = profileResult.data
   }
+  // Silently ignore errors - user_profiles table might not exist or migration not run yet
 
   const { data: { user } } = await supabase.auth.getUser()
   const isOwner = user?.id === recipe.user_id

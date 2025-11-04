@@ -61,3 +61,24 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- Add foreign key relationship between recipes and user_profiles
+-- This allows Supabase to automatically join these tables
+-- Note: This is an optional relationship since both reference auth.users
+-- If the constraint fails, it means some recipes have user_ids that don't have profiles yet
+DO $$
+BEGIN
+  -- Only add the constraint if it doesn't already exist
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'recipes_user_profiles_fk'
+  ) THEN
+    -- Add foreign key from recipes.user_id to user_profiles.id
+    ALTER TABLE recipes
+    ADD CONSTRAINT recipes_user_profiles_fk
+    FOREIGN KEY (user_id) 
+    REFERENCES user_profiles(id) 
+    ON DELETE CASCADE
+    DEFERRABLE INITIALLY DEFERRED;
+  END IF;
+END $$;
+
