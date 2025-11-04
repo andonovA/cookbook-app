@@ -101,7 +101,7 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
               {recipe.category}
             </span>
           )}
-          {recipe.tags && recipe.tags.slice(0, 3).map((tag, idx) => (
+          {recipe.tags && recipe.tags.slice(0, 3).map((tag: string, idx: number) => (
             <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
               {tag}
             </span>

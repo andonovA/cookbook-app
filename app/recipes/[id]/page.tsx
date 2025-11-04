@@ -128,7 +128,7 @@ export default async function RecipePage({ params }: { params: { id: string } })
                 {recipe.category}
               </span>
             )}
-            {recipe.tags && recipe.tags.map((tag, idx) => (
+            {recipe.tags && recipe.tags.map((tag: string, idx: number) => (
               <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
                 {tag}
               </span>

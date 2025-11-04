@@ -95,7 +95,7 @@ export default function NewRecipePage() {
 
       // Parse tags
       const tags = data.tags
-        ? data.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag.length > 0)
+        ? data.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag.length > 0)
         : null
 
       // Insert recipe into database
