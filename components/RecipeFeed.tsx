@@ -80,7 +80,7 @@ export default function RecipeFeed() {
 
       // Try to get user profiles if they exist
       if (data && data.length > 0) {
-        const userIds = [...new Set(data.map((r: any) => r.user_id))]
+        const userIds = Array.from(new Set(data.map((r: any) => r.user_id)))
         
         // Try to fetch user profiles (might fail if table doesn't exist)
         let profiles: any[] | null = null
