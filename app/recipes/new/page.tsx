@@ -10,6 +10,12 @@ interface RecipeForm {
   description: string
   ingredients: string
   instructions: string
+  category: string
+  tags: string
+  prep_time: string
+  cook_time: string
+  servings: string
+  difficulty: string
 }
 
 export default function NewRecipePage() {
@@ -87,6 +93,11 @@ export default function NewRecipePage() {
         videoUrl = await uploadFile(videoFile, videoPath)
       }
 
+      // Parse tags
+      const tags = data.tags
+        ? data.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag.length > 0)
+        : null
+
       // Insert recipe into database
       const { error } = await supabase
         .from('recipes')
@@ -98,6 +109,12 @@ export default function NewRecipePage() {
           instructions: data.instructions,
           photo_url: photoUrl,
           video_url: videoUrl,
+          category: data.category || null,
+          tags: tags,
+          prep_time: data.prep_time ? parseInt(data.prep_time) : null,
+          cook_time: data.cook_time ? parseInt(data.cook_time) : null,
+          servings: data.servings ? parseInt(data.servings) : null,
+          difficulty: data.difficulty || null,
         })
 
       if (error) throw error
@@ -143,6 +160,100 @@ export default function NewRecipePage() {
             rows={3}
             placeholder="A brief description of your recipe..."
           />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+              Category
+            </label>
+            <select
+              id="category"
+              {...register('category')}
+              className="input-field"
+            >
+              <option value="">Select a category</option>
+              <option value="Breakfast">Breakfast</option>
+              <option value="Lunch">Lunch</option>
+              <option value="Dinner">Dinner</option>
+              <option value="Dessert">Dessert</option>
+              <option value="Snack">Snack</option>
+              <option value="Appetizer">Appetizer</option>
+              <option value="Drink">Drink</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700 mb-2">
+              Difficulty
+            </label>
+            <select
+              id="difficulty"
+              {...register('difficulty')}
+              className="input-field"
+            >
+              <option value="">Select difficulty</option>
+              <option value="Easy">Easy</option>
+              <option value="Medium">Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="prep_time" className="block text-sm font-medium text-gray-700 mb-2">
+              Prep Time (minutes)
+            </label>
+            <input
+              id="prep_time"
+              type="number"
+              {...register('prep_time')}
+              className="input-field"
+              placeholder="e.g., 15"
+              min="0"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="cook_time" className="block text-sm font-medium text-gray-700 mb-2">
+              Cook Time (minutes)
+            </label>
+            <input
+              id="cook_time"
+              type="number"
+              {...register('cook_time')}
+              className="input-field"
+              placeholder="e.g., 30"
+              min="0"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="servings" className="block text-sm font-medium text-gray-700 mb-2">
+              Servings
+            </label>
+            <input
+              id="servings"
+              type="number"
+              {...register('servings')}
+              className="input-field"
+              placeholder="e.g., 4"
+              min="1"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">
+              Tags (comma-separated)
+            </label>
+            <input
+              id="tags"
+              type="text"
+              {...register('tags')}
+              className="input-field"
+              placeholder="e.g., Vegetarian, Spicy, Quick"
+            />
+            <p className="mt-1 text-xs text-gray-500">Separate tags with commas</p>
+          </div>
         </div>
 
         <div>
