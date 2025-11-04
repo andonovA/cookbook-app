@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import RecipeActions from '@/components/RecipeActions'
+import FavoriteButton from '@/components/FavoriteButton'
 
 export default async function RecipePage({ params }: { params: { id: string } }) {
   const supabase = createServerClient()
@@ -66,8 +67,6 @@ export default async function RecipePage({ params }: { params: { id: string } })
           </div>
         )}
 
-        {isOwner && <RecipeActions recipeId={recipeWithProfile.id} />}
-
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">{recipeWithProfile.title}</h1>
@@ -94,6 +93,11 @@ export default async function RecipePage({ params }: { params: { id: string } })
                 <span>{recipeWithProfile.user_profiles.full_name || recipeWithProfile.user_profiles.username || 'Anonymous'}</span>
               </Link>
             )}
+          </div>
+          
+          <div className="flex items-center gap-3 ml-4">
+            {isOwner && <RecipeActions recipeId={recipeWithProfile.id} />}
+            <FavoriteButton recipeId={recipeWithProfile.id} className="text-2xl" />
           </div>
           
           {recipeWithProfile.difficulty && (

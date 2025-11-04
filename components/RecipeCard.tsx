@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import FavoriteButton from './FavoriteButton'
 
 interface Recipe {
   id: string
@@ -36,8 +37,11 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
   }
 
   return (
-    <Link href={`/recipes/${recipe.id}`} className="block">
-      <article className="card hover:shadow-lg transition-shadow">
+    <article className="card hover:shadow-lg transition-shadow relative">
+      <div className="absolute top-4 right-4 z-10">
+        <FavoriteButton recipeId={recipe.id} />
+      </div>
+      <Link href={`/recipes/${recipe.id}`} className="block">
         {recipe.photo_url && (
           <div className="relative w-full h-64 mb-4 rounded-lg overflow-hidden">
             <Image
@@ -144,8 +148,8 @@ export default function RecipeCard({ recipe }: { recipe: Recipe }) {
           <span>{formatDate(recipe.created_at)}</span>
           <span className="text-primary-600 font-medium">View Recipe →</span>
         </div>
-      </article>
-    </Link>
+      </Link>
+    </article>
   )
 }
 
